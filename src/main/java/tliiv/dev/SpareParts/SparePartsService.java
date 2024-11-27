@@ -23,10 +23,10 @@ public class SparePartsService {
     public void loadCsvData() {
         try (Reader reader = new InputStreamReader(getClass().getResourceAsStream("/csv/LE.txt"), StandardCharsets.UTF_8);
              CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT
-                     .withDelimiter('\t') // Set tab as delimiter
-                     .withIgnoreSurroundingSpaces() // Ignore spaces around fields
-                     .withIgnoreEmptyLines() // Skip empty lines
-                     .withTrim())) { // Trim leading and trailing whitespace
+                     .withDelimiter('\t')
+                     .withIgnoreSurroundingSpaces()
+                     .withIgnoreEmptyLines()
+                     .withTrim())) {
 
             for (CSVRecord record : csvParser) {
                 // Safe parsing for numeric fields (check if empty and use default value)
@@ -76,6 +76,17 @@ public class SparePartsService {
         return sparePartsList;
     }
 
+    public List<SpareParts> getPaginatedSpareParts(int page, int size) {
+        int fromIndex = page * size;
+        int toIndex = Math.min(fromIndex + size, sparePartsList.size());
+
+        // If the requested page is out of bounds, return an empty list
+        if (fromIndex > sparePartsList.size()) {
+            return new ArrayList<>();
+        }
+
+        return sparePartsList.subList(fromIndex, toIndex);
+    }
 
 }
 
