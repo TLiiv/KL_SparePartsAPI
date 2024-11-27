@@ -20,4 +20,13 @@ public class SpareParts {
     private String partClass;
     private double priceWithTax;
 
+//    public String getName() {
+//        return productName;
+//    }
+//
+//    public String getSerialNumber() {
+//        return seriesNumber;
+//    }
 }
+
+

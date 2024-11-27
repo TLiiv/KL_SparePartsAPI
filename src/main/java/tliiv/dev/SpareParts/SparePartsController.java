@@ -20,13 +20,23 @@ public class SparePartsController {
         this.sparePartsService = sparePartsService;
     }
 
-    @GetMapping
+
+    //spare-parts?page=0&size=10&productName=mut
+    //spare-parts?page=0&size=10&seriesNumber=999999
+    @GetMapping()
     public List<SpareParts> getAllSpareParts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "30") int size) {
-        return sparePartsService.getPaginatedSpareParts(page, size);
+            @RequestParam(defaultValue = "30") int size,
+            @RequestParam(required = false) String productName,
+            @RequestParam(required = false) String seriesNumber) {
+        // If name or serialNumber is provided, filter the list
+        if (productName != null || seriesNumber != null) {
+            return sparePartsService.getPaginatedAndFilteredSpareParts(page, size, productName,seriesNumber);
+        } else {
+            // Otherwise return all spare parts (paginated)
+            return sparePartsService.getPaginatedSpareParts(page, size);
+        }
     }
-
 
 }
 

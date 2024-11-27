@@ -11,6 +11,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 //apache commons csv
 //https://www.baeldung.com/jackson  parseimiseks  jsonisse
@@ -30,6 +31,7 @@ public class SparePartsService {
 
             for (CSVRecord record : csvParser) {
                 // Safe parsing for numeric fields (check if empty and use default value)
+                String seriesNumber = record.get(0);
                 int stock1 = parseIntOrDefault(record.get(2), 0);
                 int stock2 = parseIntOrDefault(record.get(3), 0);
                 int stock3 = parseIntOrDefault(record.get(4), 0);
@@ -41,7 +43,7 @@ public class SparePartsService {
 
                 // Map each row to a SpareParts object
                 SpareParts sparePart = new SpareParts(
-                        record.get(0),
+                        seriesNumber,
                         record.get(1),
                         stock1, stock2, stock3, stock4, stock5, stock6,
                         price, record.get(9), priceWithTax
@@ -86,6 +88,45 @@ public class SparePartsService {
         }
 
         return sparePartsList.subList(fromIndex, toIndex);
+    }
+
+    public List<SpareParts> getFilteredSpareParts(String productName, String seriesNumber) {
+        return sparePartsList.stream()
+                .filter(sparePart ->
+                        (productName == null || productName.trim().isEmpty() || sparePart.getProductName().toLowerCase().contains(productName.toLowerCase())) &&
+
+                                (seriesNumber == null || seriesNumber.trim().isEmpty() || sparePart.getSeriesNumber().toLowerCase().contains(seriesNumber.toLowerCase()))
+                )
+                .collect(Collectors.toList());
+    }
+
+
+
+    public List<SpareParts> getPaginatedAndFilteredSpareParts(int page, int size, String productName, String seriesNumber) {
+        int fromIndex = page * size;
+        int toIndex = Math.min(fromIndex + size, sparePartsList.size());
+
+        // Filter spare parts based on name or series number
+        List<SpareParts> filteredList = sparePartsList.stream()
+                .filter(sparePart -> {
+                    boolean matchesProductName = (productName == null || sparePart.getProductName().toLowerCase().contains(productName.toLowerCase()));
+                    boolean matchesSeriesNumber = (seriesNumber == null || sparePart.getSeriesNumber().toLowerCase().contains(seriesNumber.toLowerCase()));
+
+                    // Add logging to see the filtering process
+                    System.out.println("Filtering - Product Name: " + sparePart.getProductName() + ", Series Number: " + sparePart.getSeriesNumber());
+                    System.out.println("Matches Product Name: " + matchesProductName + ", Matches Series Number: " + matchesSeriesNumber);
+
+                    return matchesProductName && matchesSeriesNumber;
+                })
+                .collect(Collectors.toList());
+
+        // If the requested page is out of bounds after filtering, return an empty list
+        if (fromIndex >= filteredList.size()) {
+            return new ArrayList<>();
+        }
+
+        // Return the paginated result
+        return filteredList.subList(fromIndex, toIndex);
     }
 
 }
